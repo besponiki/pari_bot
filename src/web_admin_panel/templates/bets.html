@@ -10,11 +10,6 @@
 
 &nbsp;
     <form method="POST" enctype="multipart/form-data" class="form-horizontal">
-{#        <div class="form-group">#}
-{#            <div class="col-sm-offset-10 col-sm-10">#}
-{#                <button type="submit" name="submit" class="btn btn-default">Удалить выбранные</button>#}
-{#            </div>#}
-{#        </div>#}
         <input type="hidden" name="act" value="showSignals">
         <input type="hidden" name="p" value={{ p }}>
 
@@ -22,7 +17,6 @@
             <table class="table table-hover" align="center">
                 <thead>
                     <tr>
-{#                        <th><input type="checkbox" onchange="switchCheckbox(this);" id="check_all"></th>#}
                         <th>Дата</th>
                         <th>Номер пари</th>
                         <th>Количество людей</th>
@@ -74,11 +68,6 @@
             </table>
         </div>
 
-{#        <div class="form-group">#}
-{#            <div class="col-sm-offset-10 col-sm-10">#}
-{#                <button type="submit" name="submit" class="btn btn-default">Удалить выбранные</button>#}
-{#            </div>#}
-{#        </div>#}
     </form>
 
     <nav aria-label="...">

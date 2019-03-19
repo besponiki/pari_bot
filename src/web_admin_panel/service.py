@@ -188,20 +188,6 @@ def index():
     return result
 
 
-#  dorobit
-# @app.route('/bets/del/<string:tag>', methods=['GET', 'POST'])
-# def del_bet(tag):
-#     result = make_response(redirect('bets'))
-#
-#     if not tag:
-#         return result
-#
-#     target_bet: PariBet = PariBet.objects(id=tag).first()
-#     target_bet.delete()
-#
-#     return result
-
-
 @app.route('/bets/edit/', methods=['GET', 'POST'])
 def edit_bet():
     core = Core.objects().first()
@@ -291,13 +277,8 @@ def view_bet(pari_id):
                     data = {bet.user_id: percent}
                     result2.append(data)
             return make_response(render_template(template_name_or_list='bet_view.html', row1=result1, result2=result2))
-            # result2 = {bet.user_id: pari.open_pari_balance/bet.victory_result for bet in bets}
+
     else:
-    # pari_history = CoreHistory.objects(id=pari_bet_tag)
-    #
-    # pari_bet = [i.users_coef for i in pari_history]
-    # print(pari_bet)
-    # result = make_response(render_template('bet_view.html', pari_history=pari_history))
         return result
 
 

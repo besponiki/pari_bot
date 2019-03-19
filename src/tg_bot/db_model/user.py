@@ -33,7 +33,7 @@ class User(Document):
     is_notification_active = BooleanField(default=True)
     is_blocked = BooleanField(default=False)
 
-    def referrals_user(self):
+    def referrals_users(self):
         result = list()
 
         for user_id in self.referrals_users_ids:
@@ -44,7 +44,7 @@ class User(Document):
 
         return result
 
-    def referrals_second_level_user(self):
+    def second_level_referrals_users(self):
         result = list()
 
         for user_id in self.referrals_users_second_level_ids:

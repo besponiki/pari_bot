@@ -41,8 +41,8 @@
                             {% endif %}
                         </label><br>
                         <label>Рефералы 1 уровня:
-                        {% if user.referrals_user() %}
-                            {% for user in user.referrals_user() %}
+                        {% if user.referrals_users() %}
+                            {% for user in user.referrals_users() %}
                                 {% if user.username  %}@{{ user.username }}{% endif %}
                             {% endfor %}
                         {% else %}
@@ -50,8 +50,8 @@
                         {% endif %}
                         </label><br>
                         <label>Рефералы 2 уровня:
-                        {% if user.referrals_second_level_user() %}
-                            {% for user in user.referrals_second_level_user() %}
+                        {% if user.second_level_referrals_users() %}
+                            {% for user in user.second_level_referrals_users() %}
                                 {% if user.username  %}@{{ user.username }}{% endif %}
                             {% endfor %}
                         {% else %}

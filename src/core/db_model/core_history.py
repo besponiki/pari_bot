@@ -3,7 +3,6 @@ from .pari_bet import PariBet
 from ...tg_bot.db_model.user import User
 
 class CoreHistory(Document):
-    #date = DateField()
     pari_bet_tag = IntField(default=0)
     open_pari_date = StringField()
     open_pari_members = IntField(default=0)

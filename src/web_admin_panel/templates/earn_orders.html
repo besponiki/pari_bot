@@ -20,7 +20,7 @@
                         <th>User Id</th>
                         <th>TXID</th>
                         <th>Время</th>
-{#                      <th>Удалить</th>#}
+
                     </tr>
                 </thead>
                 <tbody>
@@ -29,32 +29,14 @@
                             <td>{{ row[0] }}</td>
                             <td>{{ row[1] }}</td>
                             <td>{{ row[2] }}</td>
-{#                            <td><a href="refund/del/{{ row.id }}">Удалить</a></td>#}
+
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
-{#        <div class="table-responsive">#}
-{#            <table class="table table-hover" align="center">#}
-{#                <caption style="text-align: center; color: black;">Прошли модерацию</caption>#}
-{#                <thead>#}
-{#                    <tr>#}
-{#                        <th>TXID</th>#}
-{#                        <th>Удалить</th>#}
-{#                    </tr>#}
-{#                </thead>#}
-{#                <tbody>#}
-{#                    {% for row in rows_2 %}#}
-{#                        <tr>#}
-{#                            <td>{{ row }}</td>#}
-{#                            <td><a href="refund/del/{{ row.id }}">Удалить</a></td>#}
-{#                        </tr>#}
-{#                    {% endfor %}#}
-{#                </tbody>#}
-{#            </table>#}
-{#        </div>#}
+
     </form>
 {% endblock %}
 

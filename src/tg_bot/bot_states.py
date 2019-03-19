@@ -30,8 +30,6 @@ from ..core.db_model.message import Message, EditMessage, EditMessageEng
 from ..core.db_model.text.text import Text
 from ..core.db_model.refund import Refund
 from ..core.db_model.pari_bet import PariBet
-# таски на завтра (завтра це вже сьогодні )
-# 5.стоп меседж не работає і не щитає виіграш
 
 class BotStates(StateHandler):
     def __init__(self, bot):
@@ -131,13 +129,12 @@ class BotStates(StateHandler):
 
                                     core.update(pull__txid_for_check=(user_id, tx_id,))
                                     core.reload()
-                                    # Розсилка юзеру
+                                    # user sender
                                     text = self.locale_text(user.user_lang, 'add_funds_user_inform_msg')
                                     text = text.format(str(deposit.get('amount')))
                                     self._bot.send_message(user.user_id, text)
-                                    # розсилка адмінам
+                                    # admin sender
                                     chanel_link = core.channel_link
-                                    # chanel_link = 0 - int(chanel_link)
                                     text = self.locale_text(user.user_lang, 'add_funds_admin_inform_msg')
                                     text = text.format(str(user.user_id), str(deposit.get('amount')))
                                     expectation_time = datetime.datetime.utcnow()
@@ -155,25 +152,20 @@ class BotStates(StateHandler):
         minute = datetime.datetime.utcnow().minute
         wait_time = 50 - minute if 50 > minute else 110 - datetime.datetime.utcnow().minute
 
-        # wait_time = 10
         time.sleep(wait_time * 60)
         self._binance_pari_start()
         schedule.every(pari_interval_in_minutes).minutes.do(self._binance_pari_start)
-        print('im here-------------------------------')
         # first intermedia msg
         time.sleep(intermedia_period_1_info * 60)
         self._intermegia_1_pari_info()
         schedule.every(pari_interval_in_minutes).minutes.do(self._intermegia_1_pari_info)
-        print('im here2------------------------------------')
         # second intermedia msg
         time.sleep(intermedia_period_2_info * 60)
         self._intermegia_2_pari_info()
         schedule.every(pari_interval_in_minutes).minutes.do(self._intermegia_2_pari_info)
-        print('im here3-------------------------------------------')
         time.sleep((pari_period_in_minutes - intermedia_period_1_info - intermedia_period_2_info) * 60)
         self._binance_pari_stop()
         schedule.every(pari_interval_in_minutes).minutes.do(self._binance_pari_stop)
-        print('im here4-------------------------------------------')
 
         while self._running and not self._kill_pari_event.is_set():
             try:
@@ -191,29 +183,20 @@ class BotStates(StateHandler):
         sum_pari = core.current_open_pari_sum_up_balance+\
                    core.current_open_pari_sum_down_balance+core.current_open_pari_virtual_up_sum_balance+\
                    core.current_open_pari_virtual_down_sum_balance
-        print('pizdec')
-        # помінять
 
         for user in User.objects(Q(is_blocked=False) & Q(is_notification_active=True)):
-            print('pizdec2')
 
             # noinspection PyBroadException
             try:
                 user_lang = user.user_lang
-                print('pizdec3')
-
                 text = self.locale_text(user_lang, 'intermedia_1_pari_info_msg')
                 text = text.format(
                     str(sum_pari_member),
                     str(sum_pari)
                 )
-                print('pizdec4')
-
                 message = self._bot.send_message(
                     user.user_id, text, parse_mode="markdown")
                 user.edit_message_id = message.message_id
-                print('pizdec5')
-
                 user.save()
             except:
                 pass
@@ -242,9 +225,7 @@ class BotStates(StateHandler):
                 )
                 print(user.username)
                 print(user.edit_message_id)
-                print('---------------------------------')
                 self._bot.edit_message_text(text=text, message_id=user.edit_message_id, chat_id=user.user_id)
-                print('i will edit ur message')
 
             except:
                 pass
@@ -286,7 +267,6 @@ class BotStates(StateHandler):
     def _binance_pari_stop(self):
         info = self._client.get_aggregate_trades(symbol='BTCUSDT')[-1].get('p')
 
-        print('test1---------------------------------------------------')
         core: Core = Core.objects.first()
 
         pari_bet_tag = core.current_open_pari_bet_tag
@@ -312,15 +292,15 @@ class BotStates(StateHandler):
                 text = text.format(bet.balance)
                 self._bot.send_message(lose_user.user_id, text)
 
-        # найбільша ставка
+        # the biggest bet
         best_win_balance = 0.0
         win_balance = core.current_open_pari_sum_up_balance if is_up_win else core.current_open_pari_sum_down_balance  # winning bets
-        full_balance = core.current_open_pari_sum_up_balance + core.current_open_pari_sum_down_balance# общий баланс
-        destribute_balance = full_balance - win_balance  # бабки проігравших
+        full_balance = core.current_open_pari_sum_up_balance + core.current_open_pari_sum_down_balance# full balance
+        destribute_balance = full_balance - win_balance  # loser money
         win_balance += core.current_open_pari_virtual_up_sum_balance if is_up_win else core.current_open_pari_virtual_down_sum_balance # + virtual
         destribute_balance += core.current_open_pari_virtual_down_sum_balance if is_up_win else core.current_open_pari_virtual_up_sum_balance
-        full_percent_balance = destribute_balance * core.profit_percent / 100 #93% від бабок проігравших
-        additional_percent_balance = destribute_balance * 0.03 #3% від бабок проігравших
+        full_percent_balance = destribute_balance * core.profit_percent / 100 #93% of loser money
+        additional_percent_balance = destribute_balance * 0.03 #3% of loser money
         fee_percent_balance = destribute_balance - full_percent_balance - additional_percent_balance
         destribute_balance = destribute_balance - fee_percent_balance - additional_percent_balance #
 
@@ -404,7 +384,7 @@ class BotStates(StateHandler):
         core.current_open_pari_bet_date = '--'
         core.save()
 
-        # обнулення накрученої хуйні після розсилки
+        # nullificatication
         core.current_open_pari_virtual_up_sum_balance = 0
         core.current_open_pari_virtual_down_sum_balance = 0
         core.current_open_pari_virtual_members_up = 0
@@ -460,7 +440,6 @@ class BotStates(StateHandler):
                             except Exception as e:
                                 print(e)
                         if message.language == 'rus':
-                            print('asdsadas')
                             edit: EditMessage = EditMessage()
                             edit.edit_mailing = edit_mailing
                             edit.text = message.text
@@ -468,7 +447,6 @@ class BotStates(StateHandler):
                             edit.data = str(data)
                             edit.save()
                         elif message.language == 'eng':
-                            print('xzczxczxcxz')
                             edit: EditMessageEng = EditMessageEng()
                             edit.edit_mailing = edit_mailing
                             data = datetime.datetime.now()
@@ -577,16 +555,10 @@ class BotStates(StateHandler):
                                    reply_markup=keyboards.main_menu_keyboard(user_lang))
 
             # self._binance_pari_stop()
-
             # self._binance_pari_start()
-
-
-
             # self._intermegia_1_pari_info()
             # self._intermegia_2_pari_info()
 
-            # self._payment()
-            # self._pari_thread(15, 10, 2, 3)
 
 
         else:
@@ -768,22 +740,7 @@ class BotStates(StateHandler):
             core: Core = Core.objects.first()
             pari_tag = core.current_open_pari_bet_tag
             pari_bets = PariBet.objects(Q(tag=pari_tag) & Q(user_id=user.user_id))
-            pari_bets_2 = PariBet.objects(user=user)
-            # user.all_bets_count += pari_bets_2.count()
-            # global_balance = user.glodal_balance
-            # for bet in pari_bets_2:
-            #     global_balance += bet.balance
-            # user.glodal_balance = global_balance
-
-            # all_bets_count = 0
-            # all_bets_count += pari_bets_2.count()
-            # global_balance = 0
-            # for bet in pari_bets_2:
-            #     global_balance += bet.balance
-
-
             addition_text = ''
-            print('---------------------------')
             print(pari_bets.count())
             if pari_bets.count() > 0:
                 for bet in pari_bets:
@@ -949,18 +906,9 @@ class BotStates(StateHandler):
                             core.current_open_pari_sum_down_balance += float_value
 
                         core.save()
-                        print(user)
-                        print(user_lang)
 
-
-
-
-
-
-                        print('-------------------------------------')
-                        # розсилка в канал
+                        # chanel sender
                         chanel_link = core.channel_link
-                        # chanel_link = 0-int(chanel_link)
                         text = self.locale_text(user_lang, 'chanel_msg')
                         text = text.format(core.current_open_pari_bet_tag, bet.balance, user.user_id)
                         self._bot.send_message(chanel_link, text)

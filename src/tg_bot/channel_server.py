@@ -2,7 +2,7 @@ import flask
 from telebot import types
 from mongoengine import connect
 
-from src import config
+from .. import config
 from .bot_handlers import BotHandlers
 
 connect(config.PROJECT_NAME, alias='default')

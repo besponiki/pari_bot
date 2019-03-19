@@ -1,6 +1,6 @@
 import telebot
 
-from src import config
+from .. import config
 
 from .logger_settings import logger
 from .bot_states import BotStates
