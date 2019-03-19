@@ -1,0 +1,80 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}Ставка{% endblock %}
+
+{% block navbar %}
+    {% include 'navbar.html' %}
+{% endblock %}
+
+{% block content %}
+    {% if error %}
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+            <span class="sr-only">Error:</span>
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <div class="form-group row">
+        <div class="col-xs-1">
+        </div>
+
+        <div class="col-xs-5">
+            <form method="POST" enctype="multipart/form-data" class="form-horizontal">
+
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Изменить</div>
+                    <div class="panel-body">
+                        <label for="up_num_member">Количество положительных пользователей:</label>
+                        <input class="form-control" name="up_num_member" id="up_num_member" type="text" value=
+                        "{{ core.current_open_pari_virtual_members_up }}">
+
+                        <label for="down_num_member">Количество отрицательных  пользователей:</label>
+                        <input class="form-control" name="down_num_member" id="down_num_member" type="text" value=
+                        "{{ core.current_open_pari_virtual_members_down }}">
+
+                        <label for="up_balance">Сумма положительных ставок:</label>
+                        <input class="form-control" name="up_balance" id="up_balance" type="text" value=
+                        "{{ core.current_open_pari_virtual_up_sum_balance }}">
+
+                        <label for="down_balance">Сумма отрицательных ставок:</label>
+                        <input class="form-control" name="down_balance" id="down_balance" type="text" value=
+                        "{{ core.current_open_pari_virtual_down_sum_balance }}">
+
+                        <label>Юзеры:
+                        {% if pari_bet %}
+                            {% for bet in pari_bet %}
+                                <p></p>
+                                {% if bet  %}
+                                    {{ bet.user_id }} поставил {{ bet.balance }} на
+                                    {% if bet.is_up  %}
+                                        повышение
+                                    {% else %}
+                                        понижение
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                             -
+                        {% endif %}
+                        </label><br>
+                    <label>Всего:<br>
+                        {{ plus_people_counter }} поставили {{ plus_bets_counter }} на повышение<br>
+                        {{ minus_people_counter }} поставили {{ minus_bets_counter }} на понижение
+                    </label><br>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-danger btn-lg pull-right">Сохранить</button>
+            </form>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+
+{% block styles %}
+    {{super()}}
+    <link rel="stylesheet" href="{{ url_for('.static', filename='css/style_bootstrap.css') }}">
+{% endblock %}

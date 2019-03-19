@@ -1,0 +1,113 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}Настройки{% endblock %}
+
+{% block navbar %}
+    {% include 'navbar.html' %}
+{% endblock %}
+
+{% block content %}
+    {% if error %}
+        <div class="alert alert-danger alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+            <span class="sr-only">Error:</span>
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <div class="form-group row">
+        <div class="col-xs-1">
+        </div>
+
+        <div class="col-xs-5">
+            <form method="POST" enctype="multipart/form-data" class="form-horizontal">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Общие Настройки</div>
+                    <div class="panel-body">
+                        <label for="referral_bonus_price">Реферальный Бонус первого уровня</label>
+                        <input class="form-control" name="referral_bonus_price" id="referral_bonus_price" type="text" value=
+                        "{{ ref_bonus_1 }}">
+
+                        <label for="referral_bonus_2_price">Реферальный Бонус второго  уровня</label>
+                        <input class="form-control" name="referral_bonus_2_price" id="referral_bonus_2_price" type="text" value=
+                        "{% if ref_bonus_2 %}{{ ref_bonus_2 }}{% endif %}">
+                    </div>
+                </div>
+
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Настройки пари</div>
+                    <div class="panel-body">
+                        <label for="profit_bot_percent">% Профита Бота</label>
+                        <input class="form-control" name="profit_bot_percent" id="profit_bot_percent" type="text" value=
+                        "{% if core %}{{ 100 - core.profit_percent }}{% endif %}"> <br>
+
+                         <label for="profit_bot_chanel"> Канал</label>
+                        <input class="form-control" name="profit_bot_chanel" id="profit_bot_chanel" type="text" value=
+                        "{% if core %}{{ core.channel_link }}{% endif %}"> <br>
+
+                        <label for="fee_username">Юзер который забирает % Профита Бота</label>
+                        <input class="form-control" name="fee_username" id="fee_username" type="text" value=
+                        "{% if core %}{{ core.fee_username }}{% endif %}"> <br>
+
+                        <label for="min_bet_size">Мин. ставка в боте (BTC)</label>
+                        <input class="form-control" name="min_bet_size" id="min_bet_size" type="text" value=
+                        "{% if core %}{{ core.min_bet_size }}{% endif %}"> <br>
+
+                        <label for="pari_interval_in_minutes">Интервал между пари (мин)</label>
+                        <input class="form-control" name="pari_interval_in_minutes" id="pari_interval_in_minutes" type="text" value=
+                        "{% if core %}{{ core.pari_interval_in_minutes }}{% endif %}"> <br>
+
+                        <label for="pari_period_in_minutes">Интервал после начала пари для закрытия (мин)</label>
+                        <input class="form-control" name="pari_period_in_minutes" id="pari_period_in_minutes" type="text" value=
+                        "{% if core %}{{ core.pari_period_in_minutes }}{% endif %}"> <br>
+
+                        <label for="intermedia_period_1_info">Интервал между пари и промежуточными результатами (мин)</label>
+                        <input class="form-control" name="intermedia_period_1_info" id="intermedia_period_1_info" type="text" value=
+                        "{% if core %}{{ core.intermedia_period_1_info }}{% endif %}"> <br>
+
+                        <label for="intermedia_period_2_info">Интервал между концом принятия ставок и общей статистикой ставки (мин)</label>
+                        <input class="form-control" name="intermedia_period_2_info" id="intermedia_period_2_info" type="text" value=
+                        "{% if core %}{{ core.intermedia_period_2_info }}{% endif %}"> <br>
+                    </div>
+                </div>
+
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Binance API</div>
+                    <div class="panel-body">
+                        <label for="value">API KEY</label>
+                        <input class="form-control" name="value" id="value" type="text" value=
+                        "{% if core %}{{ core.api_key }}{% endif %}"><br>
+
+                        <label for="value1">SECRET KEY</label>
+                        <input class="form-control" name="value1" id="value1" type="text" value=
+                        "{% if core %}{{ core.secret_key }}{% endif %}"><br>
+
+                        <label for="main_btc_address">Binance Address Btc для ввода</label>
+                        <input class="form-control" name="main_btc_address" id="main_btc_address" type="text" value=
+                        "{% if core %}{{ core.main_btc_address }}{% endif %}">
+                    </div>
+                </div>
+
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Ссылки FAQ</div>
+                    <div class="panel-body">
+                        <label for="link_1">Rus Link</label>
+                        <input class="form-control" name="link_1" id="link_1" type="text" value=
+                        "{% if core %}{{ core.link_1 }}{% endif %}"><br>
+
+                        <label for="link_2">Eng Link</label>
+                        <input class="form-control" name="link_2" id="link_2" type="text" value=
+                        "{% if core %}{{ core.link_2 }}{% endif %}"><br>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-danger btn-lg pull-right">Сохранить</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block styles %}
+    {{super()}}
+    <link rel="stylesheet" href="{{ url_for('.static', filename='css/style_bootstrap.css') }}">
+{% endblock %}

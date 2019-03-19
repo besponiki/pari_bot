@@ -1,0 +1,11 @@
+werkzeug
+requests
+schedule
+mongoengine
+flask
+flask-bootstrap
+flask-mongoengine
+PyTelegramBotApi
+Twisted
+python-binance
+schedule
