@@ -135,13 +135,13 @@ class BotStates(StateHandler):
                                     self._bot.send_message(user.user_id, text)
                                     # admin sender
                                     chanel_link = core.channel_link
-                                    text = self.locale_text(user.user_lang, 'add_funds_admin_inform_msg')
-                                    text = text.format(str(user.user_id), str(deposit.get('amount')))
+                                    text1 = self.locale_text(user.user_lang, 'add_funds_admin_inform_msg')
+                                    text1 = text1.format(str(user.user_id), str(deposit.get('amount')))
                                     expectation_time = datetime.datetime.utcnow()
                                     times = expectation_time.strftime('%d/%m/%y %H:%M')
                                     user.add_money[str(times)] = str(deposit.get('amount'))
                                     user.save()
-                                    self._bot.send_message(chanel_link, text)
+                                    self._bot.send_message(chanel_link, text1)
                                     # send notification to user and admin channel
                     except Exception as e:
                         print(e)
@@ -240,7 +240,7 @@ class BotStates(StateHandler):
         core.current_open_pari_bet_date = str(datetime.datetime.utcnow())
         core.current_open_pari_time = datetime.datetime.utcnow()
         core.save()
-        expectation_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=core.pari_period_in_minutes, hours=2)
+        expectation_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=core.pari_period_in_minutes, hours=3)
 
         info = self._client.get_aggregate_trades(symbol='BTCUSDT')[-1].get('p')
 
@@ -300,7 +300,9 @@ class BotStates(StateHandler):
         win_balance += core.current_open_pari_virtual_up_sum_balance if is_up_win else core.current_open_pari_virtual_down_sum_balance # + virtual
         destribute_balance += core.current_open_pari_virtual_down_sum_balance if is_up_win else core.current_open_pari_virtual_up_sum_balance
         full_percent_balance = destribute_balance * core.profit_percent / 100 #93% of loser money
-        additional_percent_balance = destribute_balance * 0.03 #3% of loser money
+        parent1_sum = destribute_balance * core.ref1_percent/100
+        parent2_sum = destribute_balance * core.ref2_percent/100
+        additional_percent_balance = parent1_sum + parent2_sum
         fee_percent_balance = destribute_balance - full_percent_balance - additional_percent_balance
         destribute_balance = destribute_balance - fee_percent_balance - additional_percent_balance #
 
@@ -310,15 +312,12 @@ class BotStates(StateHandler):
         fee_user.save()
 
         for bet in win_pari_bets:
+            print(win_balance)
             coefficient = bet.balance / win_balance #-(win_balance * core.profit_percent)
-            parent_balance = coefficient * additional_percent_balance
-            parent2_win = parent_balance/3
-            parent1_win = parent_balance - parent2_win
-            print(parent1_win)
-            print(parent2_win)
-            print(parent_balance)
+            parent1_balance = coefficient * parent1_sum
+            parent2_balance = coefficient * parent2_sum
             user_win_balance = coefficient * destribute_balance # розприділяються бабки проігравших
-            if user_win_balance + bet.balance - user_win_balance*0.03 > best_win_balance:
+            if user_win_balance + bet.balance - parent1_balance - parent2_balance > best_win_balance:
                 best_win_balance = user_win_balance + bet.balance
 
             bet.victory_result += user_win_balance + bet.balance
@@ -329,17 +328,19 @@ class BotStates(StateHandler):
 
             if user.parent_referral_user_id:
                 parent_user = User.objects(user_id=user.parent_referral_user_id).first()
-                parent_user.balance += parent1_win
+                parent_user.balance += parent1_balance
+                parent_user.earn_from_referrals += parent1_balance
                 parent_user.save()
                 if parent_user.parent_referral_user_id:
                     parent_user2 = User.objects(user_id=parent_user.parent_referral_user_id).first()
-                    parent_user2.balance += parent2_win
+                    parent_user2.balance += parent2_balance
+                    parent_user2.earn_from_referrals += parent2_balance
                     parent_user2.save()
                 else:
-                    fee_user.balance += parent2_win
+                    fee_user.balance += parent2_balance
                     fee_user.save()
             else:
-                fee_user.balance += parent2_win + parent1_win
+                fee_user.balance += parent2_balance + parent1_balance
                 fee_user.save()
 
             text = self.locale_text(user.user_lang, 'winning_touser_msg')
@@ -362,10 +363,14 @@ class BotStates(StateHandler):
         core_history.open_pari_members = core.current_open_pari_members
         core_history.open_pari_balance = core.current_open_pari_sum_up_balance \
                                          + core.current_open_pari_sum_down_balance
+        core_history.open_pari_up_balance = core.current_open_pari_sum_up_balance
+        core_history.open_pari_down_balance = core.current_open_pari_sum_down_balance
+        core_history.commision_balance = fee_percent_balance
         core_history.open_pari_virtual_up_sum_balance = core.current_open_pari_virtual_up_sum_balance
         core_history.open_pari_virtual_down_sum_balance = core.current_open_pari_virtual_down_sum_balance
         core_history.open_pari_virtual_members_up = core.current_open_pari_virtual_members_up
         core_history.open_pari_virtual_members_down = core.current_open_pari_virtual_members_down
+        core_history.win_side = is_up_win
         for bet in pari_bet:
             core_history.bets = {str(id): {
                 'balance': bet.balance,
@@ -467,11 +472,19 @@ class BotStates(StateHandler):
 
         if user.is_blocked:
             return None
+        if message.text[7:]:
+            user_parent_ids = self.find_parents_ids(message.text[7:])
+            if user.user_id in user_parent_ids:
+                self._go_to_state(message, 'language_state')
+                return None
+
+        if user.is_first_start == False:
+            self._go_to_state(message, 'language_state')
+            return None
 
         if user and not user.parent_referral_user_id and message.text[7:] and user.user_id != int(message.text[7:]):
             try:
                 referral_user: User = User.objects(user_id=message.text[7:]).first()
-
 
                 if referral_user:
                     user.parent_referral_user_id = str(referral_user.user_id)
@@ -497,13 +510,13 @@ class BotStates(StateHandler):
 
             except Exception as e:
                 logger.exception(e)
-
+        user.is_first_start = False
+        user.save()
         self._go_to_state(message, 'language_state')
 
     def language_state(self, message, entry=False, call: types.CallbackQuery = None):
         user: User = User.objects(user_id=message.chat.id).first()
         user_lang = user.user_lang
-
         if user.is_blocked:
             return None
 
@@ -740,7 +753,22 @@ class BotStates(StateHandler):
             core: Core = Core.objects.first()
             pari_tag = core.current_open_pari_bet_tag
             pari_bets = PariBet.objects(Q(tag=pari_tag) & Q(user_id=user.user_id))
+            pari_bets_2 = PariBet.objects(user=user)
+            # user.all_bets_count += pari_bets_2.count()
+            # global_balance = user.glodal_balance
+            # for bet in pari_bets_2:
+            #     global_balance += bet.balance
+            # user.glodal_balance = global_balance
+
+            # all_bets_count = 0
+            # all_bets_count += pari_bets_2.count()
+            # global_balance = 0
+            # for bet in pari_bets_2:
+            #     global_balance += bet.balance
+
+
             addition_text = ''
+            print('---------------------------')
             print(pari_bets.count())
             if pari_bets.count() > 0:
                 for bet in pari_bets:
@@ -868,67 +896,80 @@ class BotStates(StateHandler):
                                 reply_markup=keyboards.main_menu_keyboard(user_lang)
                             )
                             return None
-
-                    if 0 < float_value < user.balance:
-                        user.balance -= float_value
-                        user.current_bets_balance += float_value
-                        user.current_bets_count += 1
-                        user.all_bets_count += 1
-                        user.glodal_balance += float_value
-                        user.save()
-
-                        core: Core = Core.objects.first()
-
-                        bet: PariBet = PariBet()
-
-                        bet.tag = core.current_open_pari_bet_tag
-                        bet.user_id = user.user_id
-                        bet.is_up = user.is_up_bet
-                        bet.balance = float_value
-                        bet.save()
-
-
-
-                        core: Core = Core.objects.first()
-
-                        if PariBet.objects(Q(tag=core.current_open_pari_bet_tag) & Q(user_id=bet.user_id)).count() == 1:
-                            core.current_open_pari_members += 1
-                        if bet.is_up:
-                            core.current_open_pari_members_up += 1
-                            core.save()
-                        else:
-                            core.current_open_pari_members_down += 1
-                            core.save()
-
-                        if bet.is_up:
-                            core.current_open_pari_sum_up_balance += float_value
-                        else:
-                            core.current_open_pari_sum_down_balance += float_value
-
-                        core.save()
-
-                        # chanel sender
-                        chanel_link = core.channel_link
-                        text = self.locale_text(user_lang, 'chanel_msg')
-                        text = text.format(core.current_open_pari_bet_tag, bet.balance, user.user_id)
-                        self._bot.send_message(chanel_link, text)
-
-
-                        text = self.locale_text(user_lang, 'bet_success_msg')
-                        self._bot.send_message(
-                            user.user_id, text, parse_mode="markdown",
-                            reply_markup=keyboards.main_menu_keyboard(user_lang)
-                        )
-
-                        user.state = 'main_menu_state'
-                        user.save()
+                    if float_value < core.min_bet_size:
+                        text = self.locale_text(user_lang, 'small_sum')
+                        self._bot.send_message(user.user_id, text, parse_mode="markdown",
+                                reply_markup=keyboards.main_menu_keyboard(user_lang))
                     else:
-                        text = self.locale_text(user_lang, 'no_enough_coin_msg')
-                        self._bot.send_message(
-                            user.user_id, text, parse_mode="markdown",
-                            reply_markup=keyboards.main_menu_keyboard(user_lang)
-                        )
-                        return None
+                        if 0 < float_value <= user.balance:
+                            user.balance -= float_value
+                            user.current_bets_balance += float_value
+                            user.current_bets_count += 1
+                            user.all_bets_count += 1
+                            user.glodal_balance += float_value
+                            user.save()
+
+                            core: Core = Core.objects.first()
+
+                            bet: PariBet = PariBet()
+
+                            bet.tag = core.current_open_pari_bet_tag
+                            bet.user_id = user.user_id
+                            bet.is_up = user.is_up_bet
+                            bet.balance = float_value
+                            bet.save()
+
+
+
+                            core: Core = Core.objects.first()
+
+                            if PariBet.objects(Q(tag=core.current_open_pari_bet_tag) & Q(user_id=bet.user_id)).count() == 1:
+                                core.current_open_pari_members += 1
+                            if bet.is_up:
+                                core.current_open_pari_members_up += 1
+                                core.save()
+                            else:
+                                core.current_open_pari_members_down += 1
+                                core.save()
+
+                            if bet.is_up:
+                                core.current_open_pari_sum_up_balance += float_value
+                            else:
+                                core.current_open_pari_sum_down_balance += float_value
+
+                            core.save()
+                            print(user)
+                            print(user_lang)
+
+
+
+
+
+
+                            print('-------------------------------------')
+                            # розсилка в канал
+                            chanel_link = core.channel_link
+                            # chanel_link = 0-int(chanel_link)
+                            text = self.locale_text(user_lang, 'chanel_msg')
+                            text = text.format(core.current_open_pari_bet_tag, bet.balance, user.user_id)
+                            self._bot.send_message(chanel_link, text)
+
+
+                            text = self.locale_text(user_lang, 'bet_success_msg')
+                            self._bot.send_message(
+                                user.user_id, text, parse_mode="markdown",
+                                reply_markup=keyboards.main_menu_keyboard(user_lang)
+                            )
+
+                            user.state = 'main_menu_state'
+                            user.save()
+                        else:
+                            text = self.locale_text(user_lang, 'no_enough_coin_msg')
+                            self._bot.send_message(
+                                user.user_id, text, parse_mode="markdown",
+                                reply_markup=keyboards.main_menu_keyboard(user_lang)
+                            )
+                            return None
 
     def cash_refund_state(self, message, entry=False, call: types.CallbackQuery = None):
         user: User = User.objects(user_id=message.chat.id).first()
@@ -1034,3 +1075,16 @@ class BotStates(StateHandler):
         result = 'https://t.me/' + link + '?start=' + str(user_id)
 
         return result
+
+    @staticmethod
+    def find_parents_ids(user_id):
+        user_ids = []
+        reg_user = User.objects(user_id=int(user_id)).first()
+        while True:
+            if reg_user.parent_referral_user_id:
+                user_ids.append(reg_user.user_id)
+                reg_user: User = User.objects(user_id=int(reg_user.parent_referral_user_id)).first()
+            else:
+                user_ids.append(reg_user.user_id)
+                break
+        return user_ids

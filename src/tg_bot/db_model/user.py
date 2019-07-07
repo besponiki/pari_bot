@@ -27,7 +27,7 @@ class User(Document):
 
     earn_from_referrals = FloatField(default=0.0)
     refund_sum = FloatField()
-
+    is_first_start = BooleanField(default=True)
     is_up_bet = BooleanField()
     add_money = DictField()
     is_notification_active = BooleanField(default=True)

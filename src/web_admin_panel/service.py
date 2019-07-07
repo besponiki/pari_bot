@@ -107,6 +107,24 @@ def index():
                 result = make_response(render_template('index.html', error=error, core=core))
                 return result
 
+            ref1_percent = request.form.get('ref1_percent')
+            if ref1_percent:
+                core.ref1_percent = int(ref1_percent)
+                core.save()
+            else:
+                error = 'Вы не ввели поле Процент рефералу первого уровня'
+                result = make_response(render_template('index.html', error=error, core=core))
+                return result
+
+            ref2_percent = request.form.get('ref2_percent')
+            if ref2_percent:
+                core.ref2_percent = int(ref2_percent)
+                core.save()
+            else:
+                error = 'Вы не ввели поле Процент рефералу второго уровня'
+                result = make_response(render_template('index.html', error=error, core=core))
+                return result
+
             referral_bonus_2_price = request.form.get('referral_bonus_2_price')
             if referral_bonus_2_price:
                 core.referral_bonus_2_price = float(referral_bonus_2_price)
@@ -167,6 +185,24 @@ def index():
                 core.save()
             else:
                 error = 'Вы не ввели поле Интервал между пари (мин)'
+                result = make_response(render_template('index.html', error=error, core=core))
+                return result
+
+            pari_interval_in_minutes = request.form.get('pari_interval_in_minutes')
+            if pari_interval_in_minutes:
+                core.pari_interval_in_minutes = int(pari_interval_in_minutes)
+                core.save()
+            else:
+                error = 'Вы не ввели поле Интервал между пари (мин)'
+                result = make_response(render_template('index.html', error=error, core=core))
+                return result
+
+            pari_period_in_minutes = request.form.get('pari_period_in_minutes')
+            if pari_period_in_minutes:
+                core.pari_period_in_minutes = int(pari_period_in_minutes)
+                core.save()
+            else:
+                error = 'Вы не ввели поле Интервал после начала пари для закрытия (мин)'
                 result = make_response(render_template('index.html', error=error, core=core))
                 return result
 
@@ -276,7 +312,8 @@ def view_bet(pari_id):
                     percent = bet.victory_result / pari.open_pari_balance * 100
                     data = {bet.user_id: percent}
                     result2.append(data)
-            return make_response(render_template(template_name_or_list='bet_view.html', row1=result1, result2=result2))
+            return make_response(render_template(template_name_or_list='bet_view.html', row1=result1, result2=result2,
+                                                 core_histore=pari))
 
     else:
         return result
@@ -372,6 +409,10 @@ def earn_orders():
         page = int(request.args.get('p', None)) if request.args.get('p', None) else 1
         core = Core.objects.first()
 
+        rows_1 = core.txid_for_check
+
+        rows_1 = reversed(rows_1)
+
         if not core:
             return None
 
@@ -380,7 +421,7 @@ def earn_orders():
         else:
             result = render_template(
                 template_name_or_list='earn_orders.html',
-                rows_1=core.txid_for_check,
+                rows_1=rows_1,
                 rows_2=core.used_txid,
             )
 
@@ -952,7 +993,7 @@ def refunds_method():
             if end > refund_len:
                 end = refund_len
 
-            refunds = Refund.objects[start:end]
+            refunds = Refund.objects[start:end].order_by('-data')
             result = render_template(template_name_or_list='refunds.html', p=page, rows=refunds, p_all=p_all,
                                      u_all=refund_len)
 

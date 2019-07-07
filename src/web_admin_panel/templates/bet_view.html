@@ -24,7 +24,16 @@
             <form method="POST" enctype="multipart/form-data" class="form-horizontal">
 
                 <div class="panel panel-primary">
-
+                    <label for="">Сумма на повышение {{ core_histore.open_pari_up_balance }}</label>
+                    <label for="">Сумма на понижение {{ core_histore.open_pari_down_balance }}</label>
+                    <label for="">Сумма комиссии {{ core_histore.commision_balance }}</label>
+                    <label for="">Пари закончилось
+                        {% if core_histore.win_side %}
+                            повышением
+                        {% else %}
+                            понижением
+                        {% endif %}
+                    </label>
                         <label>Юзеры:
                         {% if row1 %}
                             {% for bet in row1 %}

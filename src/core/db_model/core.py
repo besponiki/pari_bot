@@ -57,3 +57,5 @@ class Core(Document):
 
     txid_for_check = ListField()
     used_txid = ListField()
+    ref1_percent = IntField()
+    ref2_percent = IntField()

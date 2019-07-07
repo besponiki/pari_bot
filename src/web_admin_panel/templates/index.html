@@ -16,6 +16,8 @@
         </div>
     {% endif %}
 
+
+
     <div class="form-group row">
         <div class="col-xs-1">
         </div>
@@ -32,6 +34,14 @@
                         <label for="referral_bonus_2_price">Реферальный Бонус второго  уровня</label>
                         <input class="form-control" name="referral_bonus_2_price" id="referral_bonus_2_price" type="text" value=
                         "{% if ref_bonus_2 %}{{ ref_bonus_2 }}{% endif %}">
+
+                        <label for="ref1_percent">Процент рефералу первого уровня от выиграши пользователя</label>
+                        <input class="form-control" name="ref1_percent" id="ref1_percent" type="text" value=
+                        "{% if core %}{{ core.ref1_percent }}{% endif %}">
+
+                        <label for="ref2_percent">Процент рефералу второго уровня от выиграши пользователя</label>
+                        <input class="form-control" name="ref2_percent" id="ref2_percent" type="text" value=
+                        "{% if core %}{{ core.ref2_percent }}{% endif %}">
                     </div>
                 </div>
 

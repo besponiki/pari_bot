@@ -58,11 +58,14 @@
                              -
                         {% endif %}
                         </label><br>
-                        <label>
+                        <label> Пополнения:
                              {% if user.add_money %}
                             {% for i in add_money %}
+                                <br>
                                 {i} пополнил на сумму {add_money[i]}
                             {% endfor %}
+                                 {% else %}
+                                    -
                             {% endif %}
                         </label>
                     </div>
@@ -75,6 +78,7 @@
                         "{{ user.balance }}">
                     </div>
                 </div>
+
                 <button type="submit" class="btn btn-danger btn-lg pull-right">Сохранить</button>
             </form>
         </div>
