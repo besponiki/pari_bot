@@ -2,6 +2,7 @@
 PROJECT_NAME = 'pari_bot'
 BOT_TOKEN = '753085269:AAFoSJ6lDrMgB99c4VxblKq2Jvfo-2IEE_A'
 
+
 BOT_URL = PROJECT_NAME
 #
 WEBHOOK_HOST = 'telegram-bot.arya.pp.ua'  # server ip address

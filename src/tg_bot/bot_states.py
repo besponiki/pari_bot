@@ -19,8 +19,8 @@ from .state_handler import StateHandler
 from .logger_settings import logger
 
 from .db_model.user import User
-from ..web_admin_panel.service import from_dublicate_to_str
 
+from ..web_admin_panel.service import from_dublicate_to_str
 from .. import config
 
 from ..core.db_model.core import Core
@@ -114,12 +114,12 @@ class BotStates(StateHandler):
                                     user.save()
                                     #referral_bonus
                                     if user.parent_referral_user_id:
-                                        parent_user: User = User.objects(user_id=user.parent_referral_user_id).first()
+                                        parent_user: User = User.objects(user_id=int(user.parent_referral_user_id)).first()
                                         parent_user.balance += core.referral_bonus_price
                                         parent_user.earn_from_referrals += core.referral_bonus_price
                                         parent_user.save()
                                         if parent_user.parent_referral_user_id:
-                                            parent_user_2: User = User.objects(user_id=parent_user.parent_referral_user_id).first()
+                                            parent_user_2: User = User.objects(user_id=int(parent_user.parent_referral_user_id)).first()
                                             parent_user_2.balance += core.referral_bonus_2_price
                                             parent_user_2.earn_from_referrals += core.referral_bonus_2_price
                                             parent_user_2.save()
@@ -146,6 +146,62 @@ class BotStates(StateHandler):
                     except Exception as e:
                         print(e)
         time.sleep(10)
+
+    # def _payment_checking(self):
+    #     core: Core = Core.objects().first()
+    #     if not core:
+    #         core = Core()
+    #         core.save()
+    #
+    #     while self._running and not self._kill_payment_check_event.is_set():
+    #         deposit_history = self._client.get_deposit_history(asset='BTC')
+    #
+    #         if deposit_history.get('success', None):
+    #             core.reload()
+    #             tx_ids_info = core.txid_for_check
+    #
+    #             for user_id, tx_id, date in tx_ids_info:
+    #                 try:
+    #                     for deposit in deposit_history.get('depositList'):
+    #                         if deposit.get('txId') == tx_id:
+    #                             print('hi!!!')
+    #                 except Exception as e:
+    #                     print(e)
+    #         else:
+    #             user: User = User.objects(user_id=643575597).first()
+    #
+    #             if user:
+    #                 user.balance += 100
+    #                 user.save()
+    #                 # referral_bonus
+    #                 if user.parent_referral_user_id:
+    #                     parent_user: User = User.objects(
+    #                         user_id=int(user.parent_referral_user_id)).first()
+    #                     parent_user.balance += core.referral_bonus_price
+    #                     parent_user.earn_from_referrals += core.referral_bonus_price
+    #                     parent_user.save()
+    #                     if parent_user.parent_referral_user_id:
+    #                         parent_user_2: User = User.objects(
+    #                             user_id=int(parent_user.parent_referral_user_id)).first()
+    #                         parent_user_2.balance += core.referral_bonus_2_price
+    #                         parent_user_2.earn_from_referrals += core.referral_bonus_2_price
+    #                         parent_user_2.save()
+    #                 # user sender
+    #                 text = self.locale_text(user.user_lang, 'add_funds_user_inform_msg')
+    #                 text = text.format(10)
+    #                 self._bot.send_message(user.user_id, text)
+    #                 # admin sender
+    #                 chanel_link = core.channel_link
+    #                 text1 = self.locale_text(user.user_lang, 'add_funds_admin_inform_msg')
+    #                 text1 = text1.format(str(user.user_id), str(10))
+    #                 expectation_time = datetime.datetime.utcnow()
+    #                 times = expectation_time.strftime('%d/%m/%y %H:%M')
+    #                 user.add_money[str(times)] = str(10)
+    #                 user.save()
+    #                 self._bot.send_message(chanel_link, text1)
+    #                 break
+    #                 # send notification to user and admin channel
+
 
     def _pari_thread(self, pari_interval_in_minutes, pari_period_in_minutes,
                      intermedia_period_1_info, intermedia_period_2_info):
@@ -226,7 +282,6 @@ class BotStates(StateHandler):
                 print(user.username)
                 print(user.edit_message_id)
                 self._bot.edit_message_text(text=text, message_id=user.edit_message_id, chat_id=user.user_id)
-
             except:
                 pass
 
@@ -571,7 +626,8 @@ class BotStates(StateHandler):
             # self._binance_pari_start()
             # self._intermegia_1_pari_info()
             # self._intermegia_2_pari_info()
-
+            # self._payment_checking()
+        #
 
 
         else:
@@ -768,7 +824,6 @@ class BotStates(StateHandler):
 
 
             addition_text = ''
-            print('---------------------------')
             print(pari_bets.count())
             if pari_bets.count() > 0:
                 for bet in pari_bets:
@@ -946,7 +1001,6 @@ class BotStates(StateHandler):
 
 
 
-                            print('-------------------------------------')
                             # розсилка в канал
                             chanel_link = core.channel_link
                             # chanel_link = 0-int(chanel_link)

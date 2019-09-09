@@ -1070,10 +1070,12 @@ def auth_check():
 
     return result
 
+
 def from_dublicate_to_str(data):
     precision = 5
     data = f'{data:.{precision}f}'
     return data
+
 
 def _is_current_pari(start_time):
     delta = datetime.timedelta(minutes=10)
