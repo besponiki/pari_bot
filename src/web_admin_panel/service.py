@@ -461,9 +461,6 @@ def users():
     return result
 
 
-
-
-
 @app.route('/user/block/<string:user_id>', methods=['GET', 'POST'])
 def block_user(user_id):
 
@@ -1072,8 +1069,7 @@ def auth_check():
 
 
 def from_dublicate_to_str(data):
-    precision = 5
-    data = f'{data:.{precision}f}'
+    data = f'{data:.{5}f}'
     return data
 
 

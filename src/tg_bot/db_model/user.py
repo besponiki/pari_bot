@@ -33,6 +33,8 @@ class User(Document):
     is_notification_active = BooleanField(default=True)
     is_blocked = BooleanField(default=False)
 
+    add_referrals_money = DictField()
+
     def referrals_users(self):
         result = list()
 
@@ -59,3 +61,7 @@ class User(Document):
         user = User.objects(user_id=self.parent_referral_user_id).first()
 
         return user
+
+    def from_dublicate_to_str(self):
+        data = f'{self.balance:.{8}f}'
+        return data

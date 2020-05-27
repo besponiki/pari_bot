@@ -44,7 +44,7 @@
                             <td>{{ row.username }}</td>
                             <td>{{ row.first_name }}</td>
                             <td>{{ row.last_name }}</td>
-                            <td>{{ row.balance }}</td>
+                            <td>{{ row.from_dublicate_to_str() }}</td>
                             <td><a href="user/edit/{{ row.id }}">Просмотр/Редактирование</a></td>
                             <td><a href="user/block/{{ row.id }}">
                                 {% if row.is_blocked %}

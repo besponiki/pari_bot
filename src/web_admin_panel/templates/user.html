@@ -27,7 +27,7 @@
                     <div class="panel-body">
                         <label>Id: {{ user.user_id }}</label><br>
                         <label>Username: {{ user.username }}</label><br>
-                        <label>Текущий баланс: {{ user.balance }} BTC.</label><br>
+                        <label>Текущий баланс: {{ '%.8f' % user.balance }} BTC.</label><br>
                         <label>Кто пригласил (parent referral):
                             {% if user.parent_referral_user() %}
                                 {% if user.parent_referral_user().username
@@ -75,7 +75,7 @@
                     <div class="panel-body">
                         <label for="balance">Баланс:</label>
                         <input class="form-control" name="balance" id="balance" type="text" value=
-                        "{{ user.balance }}">
+                        "{{ '%.8f' % user.balance }}">
                     </div>
                 </div>
 
